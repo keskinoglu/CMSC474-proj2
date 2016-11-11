@@ -45,8 +45,8 @@ class Location
  */
 class Node 
 {
-	Location[] player0_pieces; //Contains the piece locations of player 1
-	Location[] player1_pieces; //Contains the piece locations of player 2
+	Location[] player0_pieces; //Contains the piece locations of player 0
+	Location[] player1_pieces; //Contains the piece locations of player 1
 	int player_turn; //Represents which players turn it is - either 0 or 1
 	
 	/**
