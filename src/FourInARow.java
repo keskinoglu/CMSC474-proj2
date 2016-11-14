@@ -86,6 +86,16 @@ class Node
 		}
 	}
 	
+	/**
+	 * For each piece of the current player, generates the available moves for that piece
+	 * and adds them to an array containing the available moves of all the pieces of the player. 
+	 * @return  Returns an array containing the available moves for the gameboard associated with 
+	 * this node.
+	 */
+	Move[] generate_moves()
+	{
+		return null;
+	}
 }
 
 
