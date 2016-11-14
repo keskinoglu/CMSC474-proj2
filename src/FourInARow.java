@@ -50,6 +50,12 @@ class Move
 	Location start; //the starting location of the move
 	Location end; //the location you end up in after the move
 	
+	/**
+	 * Creates a new Move object which contains the starting location of the move
+	 * and the ending position of the move
+	 * @param start A location representing where the piece is
+	 * @param end A location representing where the piece is to go
+	 */
 	Move(Location start, Location end)
 	{
 		this.start = start;
