@@ -1,3 +1,5 @@
+import java.util.Scanner;
+
 /**
  * A wrapper class to create ordered pairs (x,y) to represent locations on the gameboard
  */
@@ -86,11 +88,28 @@ class Node
 	
 }
 
+
 public class FourInARow {
 
 	public static void main(String[] args) 
 	{
-		//Read input into Node object
+		Scanner scanner = new Scanner(System.in); //for reading game data
+		int[] player0_moves = new int[4]; //holds the positions of player0's moves
+		int[] player1_moves = new int[4]; //holds the positions of player0's moves
+		
+		for (int i = 0; i < 4; i++) //reads in player0's moves 
+		{
+			player0_moves[i] = scanner.nextInt();
+		}
+		for (int i = 0; i < 4; i++) //reads in player1's moves 
+		{
+			player1_moves[i] = scanner.nextInt();
+		}
+		int turn = scanner.nextInt(); //reads in which player's turn it is
+		
+		scanner.close();
+		Node starting_node = new Node(turn, player0_moves, player1_moves);
 	}
 
 }
+
