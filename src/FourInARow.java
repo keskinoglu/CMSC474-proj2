@@ -107,9 +107,12 @@ public class FourInARow {
 		}
 		int turn = scanner.nextInt(); //reads in which player's turn it is
 		
-		scanner.close();
+		scanner.close(); //close the scanner, no longer needed -> might remove for speed
+		
+		//Creates a Node for the gameboard according to the incoming input
 		Node starting_node = new Node(turn, player0_moves, player1_moves);
 	}
+
 
 }
 
