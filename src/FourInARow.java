@@ -42,6 +42,22 @@ class Location
 }
 
 /**
+ * A wrapper class to create an ordered pair (loc1,loc2) where loc1 is the starting
+ * location of a move, and loc2 is the ending location of the move.
+ */
+class Move 
+{
+	Location start; //the starting location of the move
+	Location end; //the location you end up in after the move
+	
+	Move(Location start, Location end)
+	{
+		this.start = start;
+		this.end = end;
+	}
+}
+
+/**
  * A container class to represent a Node in the game tree. Each Node object keeps track
  * of which player's turn it is, and the locations of each player's peices. 
  */
