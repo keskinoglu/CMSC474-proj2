@@ -272,7 +272,7 @@ public class FourInARow {
 	{
 		Scanner scanner = new Scanner(System.in); //for reading game data
 		int[] player0_moves = new int[4]; //holds the positions of player0's moves
-		int[] player1_moves = new int[4]; //holds the positions of player0's moves
+		int[] player1_moves = new int[4]; //holds the positions of player1's moves
 
 		for (int i = 0; i < 4; i++) //reads in player0's moves 
 		{
