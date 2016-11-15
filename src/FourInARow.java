@@ -268,7 +268,6 @@ class Node
 
 
 public class FourInARow {
-
 	public static void main(String[] args) 
 	{
 		Scanner scanner = new Scanner(System.in); //for reading game data
