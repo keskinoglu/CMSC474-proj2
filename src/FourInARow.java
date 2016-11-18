@@ -1,6 +1,7 @@
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.lang.Math;
 
 /**
  * A wrapper class to create ordered pairs (x,y) to represent locations on the gameboard
@@ -263,6 +264,51 @@ class Node
 				locations.add(new Location(curr.x-2,curr.y));
 			}
 		return locations; 
+	}
+	
+	/*
+	 * enter int of 0 or 1 for which player we are and opponent
+	 */
+	double eval(int us, int opponent) {
+		// return eval_player(player_0) - eval_player(player_1);
+		return eval_player(us) - eval_player(opponent);
+	}
+	
+	/*
+	 * Perform least squares on a given player's pieces
+	 * @param 0 or 1 for player 1 or player 2
+	 */
+	double eval_player(int player) {
+		int sum_x = 0;
+		int sum_y = 0;
+		int sum_xy = 0;
+		int sum_xx = 0;
+		int sum_yy = 0;
+		
+		// Correlation coefficient
+		double r = 0;
+		
+		if (player == 0) {
+			for (Location i : this.player0_pieces) {
+				sum_x += i.x;
+				sum_y += i.y;
+				sum_xx += i.x * i.x;
+				sum_yy += i.y * i.y;
+			}
+			
+			r = (4*sum_xy - sum_x*sum_y) / (Math.sqrt((4*sum_xx - sum_x*sum_x)*(4*sum_yy - sum_y*sum_y)));
+		} else {
+			for (Location i : this.player1_pieces) {
+				sum_x += i.x;
+				sum_y += i.y;
+				sum_xx += i.x * i.x;
+				sum_yy += i.y * i.y;
+			}
+			
+			r = (4*sum_xy - sum_x*sum_y) / (Math.sqrt((4*sum_xx - sum_x*sum_x)*(4*sum_yy - sum_y*sum_y)));
+		}
+		
+		return r*r;
 	}
 }
 
