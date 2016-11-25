@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 import java.lang.Math;
@@ -116,6 +117,113 @@ class Node
 		{
 			this.player0_pieces[i] = new Location(player0_pieces[i]);
 			this.player1_pieces[i] = new Location(player1_pieces[i]);
+		}
+	}
+	
+	Node(int player_turn, ArrayList<Location> player0_pieces, ArrayList<Location> player1_pieces)
+	{
+		this.player_turn = player_turn;
+		this.player0_pieces = new Location[4];
+		this.player1_pieces = new Location[4];
+		for (int i = 0; i < 4; i++)
+		{
+			this.player0_pieces[i] = player0_pieces.get(i);
+			this.player1_pieces[i] = player1_pieces.get(i);}
+	}
+	
+	/**
+	 * Sets the static variables 'our_player' and 'other_player' so we can reference
+	 * which player we are throughout the game. Sets  'our_player' = 'who_we_are'
+	 * @param who_we_are 0 or 1 representing which player we are in the game.
+	 */
+	static void set_our_player(int who_we_are) {
+		if (who_we_are == 0) {
+			Node.our_player = 0;
+			Node.other_player = 1;
+		} else {
+			Node.our_player = 1;
+			Node.other_player = 0;
+		}
+	}
+	
+	
+	ArrayList<Node> generate_children()
+	{
+		ArrayList<Node> children = new ArrayList<Node>();
+		ArrayList<Move> moves = new ArrayList<Move>(Arrays.asList(this.generateMoves()));
+		ArrayList<Location> p0 = new ArrayList<Location>(Arrays.asList(this.player0_pieces));
+		ArrayList<Location> p1 =  new ArrayList<Location>(Arrays.asList(this.player1_pieces));
+	
+		if (this.player_turn == 0) {
+	
+			while (!moves.isEmpty()) {
+				Move current = moves.get(0);
+				moves.remove(0);
+				int index = p0.indexOf(current.start);
+				p0.set(index, current.end);
+				children.add(new Node(1, p0,p1));
+				p0.set(index, current.start);
+			}	
+			
+		} else {
+			while (!moves.isEmpty()) {
+				Move current = moves.get(0);
+				moves.remove(0);
+				int index = p0.indexOf(current.start);
+				p1.set(index, current.end);
+				children.add(new Node(0, p0,p1));
+				p1.set(index, current.start);
+			}	
+		}
+		return children;
+	}
+	
+	double max(double a, double b) {
+		if (a >= b) return a;
+		return b;
+	}
+	double min(double a, double b) {
+		if (a <= b) return a;
+		return b;
+	}
+	
+	double alpha_beta(int depth, double alpha, double beta) {
+		
+		/*if (this.is_terminal()) {
+			return the value given for a end-game board
+		} */
+		if (depth == 0) {
+			double value = eval(Node.our_player, Node.other_player);
+			return value;
+			
+		} else if (this.player_turn == Node.our_player) { //the current node is our move
+			double v = -999999999;
+			ArrayList<Node> moves = this.generate_children();
+			for (Node move : moves) {
+				v = max(v,move.alpha_beta(depth-1, alpha, beta));
+				if (v >= beta) {
+					/* A beta cutoff has occured, need to remove the proper branches from this node...
+					 */
+					return v;
+				}
+				this.next_moves.add(move);
+				alpha = max(alpha, v);
+			}
+			return v;
+		} else {
+			double v = 999999999;
+			ArrayList<Node> moves = this.generate_children();
+			for (Node move : moves) {
+				v = max(v,move.alpha_beta(depth-1, alpha, beta));
+				if (v <= alpha) {
+					/* An alpha cutoff has occured, need to remove the proper branches from this node...
+					 */
+					return v;
+				}
+				this.next_moves.add(move);
+				beta = min(beta, v);
+			}
+			return v;
 		}
 	}
 
@@ -334,7 +442,8 @@ public class FourInARow {
 
 		//Creates a Node for the gameboard according to the incoming input
 		Node starting_node = new Node(turn, player0_moves, player1_moves);
-
+		Node.set_our_player(turn); //ASSUMPTION: our player is whoever turn it is
+		
 		/** DEBUGGING PURPOSES, RUN WHEN YOU NEED TO SEE POSSIBLE MOVES
 		 *  Comment this out when moving forward
 		 */
