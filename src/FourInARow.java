@@ -100,6 +100,7 @@ class Node
 	
 	static int our_player;
 	static int other_player;
+ 	double value;
 	
 	/**
 	 * Creates a new Node in the game tree. The node contains which player's turn it is,
@@ -113,6 +114,7 @@ class Node
 		this.player_turn = player_turn;
 		this.player0_pieces = player0_pieces;
 		this.player1_pieces = player1_pieces;
+		this.value = -9999;
 	}
 
 	/**
@@ -191,6 +193,32 @@ class Node
 				children.add(new Node(0, p0,p1));
 				p1.set(index, current.start);
 			}	
+		}
+		//max
+		if(this.player_turn == our_player){
+			double temp;
+			for(Node i: children){
+				temp = i.eval(i.our_player, i.other_player);
+				i.value = temp;	
+			}
+			Collections.sort(children, new Comparator<Node>() {
+	            @Override
+	            public int compare(Node o1, Node o2) {
+	            	return (int)(o1.value - o2.value);
+	            }
+	        });		
+		}else{ //min
+			double temp;
+			for(Node i: children){
+				temp = i.eval(Node.our_player, Node.other_player);
+				i.value = temp;	
+			}
+			Collections.sort(children, new Comparator<Node>() {
+	            @Override
+	            public int compare(Node o1, Node o2) {
+	            	return (int)(o2.value - o1.value);
+	            }
+	        });	
 		}
 		return children;
 	}
