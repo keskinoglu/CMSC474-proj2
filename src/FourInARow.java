@@ -1,5 +1,7 @@
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Scanner;
 import java.lang.Math;
@@ -198,7 +200,7 @@ class Node
 		if(this.player_turn == our_player){
 			double temp;
 			for(Node i: children){
-				temp = i.eval(i.our_player, i.other_player);
+				temp = i.eval(Node.our_player, Node.other_player);
 				i.value = temp;	
 			}
 			Collections.sort(children, new Comparator<Node>() {
