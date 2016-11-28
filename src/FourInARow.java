@@ -530,6 +530,99 @@ class Node
 		
 		return r*r;
 	}
+	
+	/*
+	 * Returns -1 if there is no winner currently, 0 if tie and
+	 * returns 1 or 2 if a player has won.
+	 */
+	int winner() {
+		double player_0 = 0;
+		double player_1 = 0;
+
+		player_0 = Math.abs(eval_player(0));
+		player_1 = Math.abs(eval_player(1));
+
+		if (player_0 == 1 && !blocked(0)) {
+			if (player_1 == 1 && !blocked(1)) {
+				return 0;
+			}
+			return 1;
+		}
+
+		if (player_1 == 1 && !blocked(1)) {
+			return 2;
+		}
+		return -1;
+	}
+
+	boolean blocked(int player) {
+		int player_0_max_x = 0;
+		int player_0_min_x = 10;
+
+		int player_0_max_y = 0;
+		int player_0_min_y = 9;
+
+		int player_1_max_x = 0;
+		int player_1_min_x = 10;
+
+		int player_1_max_y = 0;
+		int player_1_min_y = 9;
+
+		for (Location i : this.player0_pieces) {
+			if (i.x > player_0_max_x) {
+				player_0_max_x = i.x;
+			}
+			if (i.x < player_0_min_x) {
+				player_0_min_x = i.x;
+			}
+			if (i.y > player_0_max_y) {
+				player_0_max_y = i.y;
+			}
+			if (i.y < player_0_min_y) {
+				player_0_min_y = i.y;
+			}
+		}
+
+		for (Location i : this.player1_pieces) {
+			if (i.x > player_1_max_x) {
+				player_1_max_x = i.x;
+			}
+			if (i.x < player_1_min_x) {
+				player_1_min_x = i.x;
+			}
+			if (i.y > player_1_max_y) {
+				player_1_max_y = i.y;
+			}
+			if (i.y < player_1_min_y) {
+				player_1_min_y = i.y;
+			}
+		}
+
+		if (player == 0) {
+			for (Location i : this.player0_pieces) {
+				for (Location j : this.player1_pieces) {
+					if (i.x == j.x && i.y < player_1_max_y && i.y > player_1_min_y) {
+						return true;
+					}
+					if (i.y == j.y && i.x < player_1_max_x && i.x > player_1_min_x) {
+						return true;
+					}
+				}
+			}
+		} else {
+			for (Location i : this.player1_pieces) {
+				for (Location j : this.player0_pieces) {
+					if (i.x == j.x && i.y < player_0_max_y && i.y > player_0_min_y) {
+						return true;
+					}
+					if (i.y == j.y && i.x < player_0_max_x && i.x > player_0_min_x) {
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	}
 }
 
 
