@@ -44,7 +44,11 @@ class Location
 		return x*10 + y;
 	}
 
-
+	@Override
+	public String toString()
+	{
+		return this.convert_location_to_board_position() + "";
+	}
 }
 
 /**
@@ -73,6 +77,12 @@ class Move
 		System.out.print("(From:" + this.start.convert_location_to_board_position() + 
 				", To: " + this.end.convert_location_to_board_position() + ") \n");
 	}
+	
+	@Override
+	public String toString()
+	{
+		return start.toString() + " " + end.toString();
+	}
 }
 
 /**
@@ -86,6 +96,7 @@ class Node
 	int player_turn; //Represents which players turn it is - either 0 or 1
 	
 	ArrayList<Node> next_moves;
+	Move suggested_move;
 	
 	static int our_player;
 	static int other_player;
@@ -194,7 +205,7 @@ class Node
 	}
 	
 	double alpha_beta(int depth, double alpha, double beta) {
-		
+		this.next_moves = new ArrayList<Node>();
 		/*if (this.is_terminal()) {
 			return the value given for a end-game board
 		} */
@@ -233,6 +244,72 @@ class Node
 		}
 	}
 	
+	Move associate_move(Node child)
+	{
+		if (this.player_turn == 0)
+		{
+			for (int i = 0; i < 4; i++)
+			{
+				if (!this.player0_pieces[i].equals(child.player0_pieces[i]))
+				{
+					return new Move(player0_pieces[i], child.player0_pieces[i]);
+				}
+			}
+		}
+		if (this.player_turn == 1)
+		{
+			for (int i = 0; i < 4; i++)
+			{
+				if (!this.player1_pieces[i].equals(child.player1_pieces[i]))
+				{
+					return new Move(player1_pieces[i], child.player1_pieces[i]);
+				}
+			}
+		}
+		return null;
+	}
+	
+	double limited_depth_minimax(int depth)
+	{
+		/*if (this.is_terminal()) 
+		 {
+		return the value given for a end-game board
+		} */
+		if (depth == 0) 
+		{
+			return this.eval(our_player, other_player);
+		}
+		if (this.player_turn == Node.our_player) 
+		{
+			double max = -99999999;
+			Move max_move = new Move(new Location(0,0), new Location(0,0));
+			for (Node child : this.next_moves)
+			{
+				double val = child.limited_depth_minimax(depth-1);
+				if (val > max) {
+					max = val;
+					max_move = associate_move(child);
+				}
+			}
+			this.suggested_move = max_move;
+			return max;
+		} else 
+		{
+			double min = 99999999;
+			Move min_move = new Move(new Location(0,0), new Location(0,0));
+			for (Node child : this.next_moves)
+			{
+				double val = child.limited_depth_minimax(depth-1);
+				if (val < min) {
+					min = val;
+					min_move = associate_move(child);
+				}
+			}
+			this.suggested_move = min_move;
+			return min;
+		}
+		
+	}
 	
 	/**
 	 * For each piece of the current player, generates the available moves for that piece
@@ -451,13 +528,12 @@ public class FourInARow {
 		Node starting_node = new Node(turn, player0_moves, player1_moves);
 		Node.set_our_player(turn); //ASSUMPTION: our player is whoever turn it is
 		
-		
-		/** DEBUGGING PURPOSES, RUN WHEN YOU NEED TO SEE POSSIBLE MOVES
-		 *  Comment this out when moving forward
-		 */
-		Move[] temp= starting_node.generateMoves();
-		for(int i = 0; i< temp.length;i++){
-			temp[i].printMove();
+		int depth = 1;
+		while (true)
+		{
+			starting_node.alpha_beta(depth, -999999999, 999999999);
+			starting_node.limited_depth_minimax(depth);
+			System.out.println(starting_node.suggested_move);
 		}
 	}
 }
