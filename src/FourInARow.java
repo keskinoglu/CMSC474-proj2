@@ -84,7 +84,12 @@ class Node
 	Location[] player0_pieces; //Contains the piece locations of player 0
 	Location[] player1_pieces; //Contains the piece locations of player 1
 	int player_turn; //Represents which players turn it is - either 0 or 1
-
+	
+	ArrayList<Node> next_moves;
+	
+	static int our_player;
+	static int other_player;
+	
 	/**
 	 * Creates a new Node in the game tree. The node contains which player's turn it is,
 	 * and the locations of both player0's and player1's pieces.  
@@ -119,6 +124,7 @@ class Node
 			this.player1_pieces[i] = new Location(player1_pieces[i]);
 		}
 	}
+
 	
 	Node(int player_turn, ArrayList<Location> player0_pieces, ArrayList<Location> player1_pieces)
 	{
@@ -226,7 +232,8 @@ class Node
 			return v;
 		}
 	}
-
+	
+	
 	/**
 	 * For each piece of the current player, generates the available moves for that piece
 	 * and adds them to an array containing the available moves of all the pieces of the player. 
@@ -443,6 +450,7 @@ public class FourInARow {
 		//Creates a Node for the gameboard according to the incoming input
 		Node starting_node = new Node(turn, player0_moves, player1_moves);
 		Node.set_our_player(turn); //ASSUMPTION: our player is whoever turn it is
+		
 		
 		/** DEBUGGING PURPOSES, RUN WHEN YOU NEED TO SEE POSSIBLE MOVES
 		 *  Comment this out when moving forward
