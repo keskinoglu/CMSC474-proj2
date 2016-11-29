@@ -3,6 +3,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Random;
 import java.util.Scanner;
 import java.lang.Math;
 
@@ -190,7 +191,7 @@ class Node
 			while (!moves.isEmpty()) {
 				Move current = moves.get(0);
 				moves.remove(0);
-				int index = p0.indexOf(current.start);
+				int index = p1.indexOf(current.start);
 				p1.set(index, current.end);
 				children.add(new Node(0, p0,p1));
 				p1.set(index, current.start);
@@ -218,7 +219,7 @@ class Node
 			Collections.sort(children, new Comparator<Node>() {
 	            @Override
 	            public int compare(Node o1, Node o2) {
-	            	return (int)(o2.value - o1.value);
+	            	return (int)(o1.value - o2.value);
 	            }
 	        });	
 		}
@@ -236,9 +237,22 @@ class Node
 	
 	double alpha_beta(int depth, double alpha, double beta) {
 		this.next_moves = new ArrayList<Node>();
-		/*if (this.is_terminal()) {
-			return the value given for a end-game board
-		} */
+		int win = this.winner();
+		if (win == 1) 
+		{
+			if (Node.our_player == 0)
+			{
+				return 10000;
+			}
+			return -10000;
+		} else if (win == 2)
+		{
+			if (Node.our_player == 1)
+			{
+				return 10000;
+			}
+			return -10000;
+		}
 		if (depth == 0) {
 			double value = eval(Node.our_player, Node.other_player);
 			return value;
@@ -299,20 +313,41 @@ class Node
 		return null;
 	}
 	
+	Move gen()
+	{
+		Random rand = new Random();
+		Move[] moves = this.generateMoves();
+		int pos = rand.nextInt(moves.length - 1);
+		return this.generateMoves()[pos];
+	}
+	
 	double limited_depth_minimax(int depth)
 	{
-		/*if (this.is_terminal()) 
-		 {
-		return the value given for a end-game board
-		} */
+		int win = this.winner();
+		if (win == 1) 
+		{
+			if (Node.our_player == 0)
+			{
+				return 10000;
+			}
+			return -10000;
+		} else if (win == 2)
+		{
+			if (Node.our_player == 1)
+			{
+				return 10000;
+			}
+			return -10000;
+		}
+		
 		if (depth == 0) 
 		{
 			return this.eval(our_player, other_player);
 		}
 		if (this.player_turn == Node.our_player) 
 		{
-			double max = -99999999;
-			Move max_move = new Move(new Location(0,0), new Location(0,0));
+			double max = -999999999;
+			Move max_move = this.gen();
 			for (Node child : this.next_moves)
 			{
 				double val = child.limited_depth_minimax(depth-1);
@@ -325,8 +360,8 @@ class Node
 			return max;
 		} else 
 		{
-			double min = 99999999;
-			Move min_move = new Move(new Location(0,0), new Location(0,0));
+			double min = 999999999;
+			Move min_move = this.gen();
 			for (Node child : this.next_moves)
 			{
 				double val = child.limited_depth_minimax(depth-1);
@@ -493,7 +528,7 @@ class Node
 	 */
 	double eval(int us, int opponent) {
 		// return eval_player(player_0) - eval_player(player_1);
-		return eval_player(us) - eval_player(opponent);
+		return eval_player(us);// - eval_player(opponent);
 	}
 	
 	/*
@@ -657,6 +692,7 @@ public class FourInARow {
 			starting_node.alpha_beta(depth, -999999999, 999999999);
 			starting_node.limited_depth_minimax(depth);
 			System.out.println(starting_node.suggested_move);
+			depth++;
 		}
 	}
 }
