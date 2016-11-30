@@ -1,3 +1,9 @@
+/* CMSC 474 - Project 2
+ * Will Dengler
+ * Sunny Patel
+ * Tolga Keskinoglu
+ */
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
