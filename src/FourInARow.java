@@ -1,4 +1,4 @@
-/* CMSC 474 - Project 2
+/** CMSC 474 - Project 2
  * Will Dengler
  * Sunny Patel
  * Tolga Keskinoglu
