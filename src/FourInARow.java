@@ -1251,6 +1251,7 @@ public class FourInARow {
 				starting_node.alpha_beta(depth, -999999999, 999999999); //perform alpha-beta
 				starting_node.limited_depth_minimax(depth); //perform LD-minimax to get a move
 				System.out.println(starting_node.suggested_move); //play the move
+				System.out.flush();
 				depth++; //increase the depth for iterative deepening
 			}
 		}
