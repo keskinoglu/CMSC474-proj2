@@ -48,6 +48,13 @@ class Location
 	}
 
 	@Override
+	public boolean equals(Object other)
+	{
+		Location loc = (Location) other;
+		return this.x == loc.x && this.y == loc.y;
+	}
+	
+	@Override
 	public String toString()
 	{
 		return this.convert_location_to_board_position() + "";
@@ -141,7 +148,13 @@ class Node
 		}
 	}
 
-	
+	/**
+	 * Creates a new Node in the game tree. The node contains which player's turn it is,
+	 * and the locations of both player0's and player1's pieces.
+	 * @param player_turn
+	 * @param player0_pieces
+	 * @param player1_pieces
+	 */
 	Node(int player_turn, ArrayList<Location> player0_pieces, ArrayList<Location> player1_pieces)
 	{
 		this.player_turn = player_turn;
@@ -168,7 +181,12 @@ class Node
 		}
 	}
 	
-	
+	/**
+	 * A conversion function which turns the generated moves by generateMoves into Nodes representing the game board
+	 * after each move has been made.
+	 * This function performs MOVE ORDERING and thus returns a list of properly sorted Nodes.
+	 * @return A sorted arraylist  of nodes representing the new game boards
+	 */
 	ArrayList<Node> generate_children()
 	{
 		ArrayList<Node> children = new ArrayList<Node>();
@@ -197,8 +215,8 @@ class Node
 				p1.set(index, current.start);
 			}	
 		}
-		//max
-		if(this.player_turn == our_player){
+		
+		if(this.player_turn == our_player){ //max
 			double temp;
 			for(Node i: children){
 				temp = i.eval(Node.our_player, Node.other_player);
@@ -226,15 +244,36 @@ class Node
 		return children;
 	}
 	
+	/**
+	 * Returns the max of a and b
+	 * @param a any double
+	 * @param b any double
+	 * @return The max of a and b
+	 */
 	double max(double a, double b) {
 		if (a >= b) return a;
 		return b;
 	}
+	
+	/**
+	 * Returns the main of a and b
+	 * @param a any double
+	 * @param b any double
+	 * @return The min of a and b
+	 */
 	double min(double a, double b) {
 		if (a <= b) return a;
 		return b;
 	}
 	
+	/**
+	 * Performs the alpha beta algorithm on the gameboard represented by this Node object and 
+	 * saves the pruned tree in this Node's next_moves field.
+	 * @param depth The depth the algorithm is currently at
+	 * @param alpha The alpha bound
+	 * @param beta The beta bound
+	 * @return A double to be passed up to the calling Node's alpha beta algorithm
+	 */
 	double alpha_beta(int depth, double alpha, double beta) {
 		this.next_moves = new ArrayList<Node>();
 		int win = this.winner();
@@ -262,9 +301,8 @@ class Node
 			ArrayList<Node> moves = this.generate_children();
 			for (Node move : moves) {
 				v = max(v,move.alpha_beta(depth-1, alpha, beta));
-				if (v >= beta) {
-					/* A beta cutoff has occured, need to remove the proper branches from this node...
-					 */
+				if (v > beta) {
+					// A beta cutoff has occurred
 					return v;
 				}
 				this.next_moves.add(move);
@@ -276,9 +314,8 @@ class Node
 			ArrayList<Node> moves = this.generate_children();
 			for (Node move : moves) {
 				v = max(v,move.alpha_beta(depth-1, alpha, beta));
-				if (v <= alpha) {
-					/* An alpha cutoff has occured, need to remove the proper branches from this node...
-					 */
+				if (v < alpha) {
+					// An alpha cutoff has occurred
 					return v;
 				}
 				this.next_moves.add(move);
@@ -288,6 +325,12 @@ class Node
 		}
 	}
 	
+	/**
+	 * Uses the differences between this Node's pieces and the child node's pieces to
+	 * determine which move was made and creates a Move object to represent that move
+	 * @param child A Node that is one move different from this Node
+	 * @return A Move object
+	 */
 	Move associate_move(Node child)
 	{
 		if (this.player_turn == 0)
@@ -313,6 +356,11 @@ class Node
 		return null;
 	}
 	
+	/**
+	 * Generates a random, valid move 
+	 * Warning: this is for place-holder purposes only.
+	 * @return a valid move
+	 */
 	Move gen()
 	{
 		Random rand = new Random();
@@ -321,6 +369,12 @@ class Node
 		return this.generateMoves()[pos];
 	}
 	
+	/**
+	 * Performs limited depth minimax to produce a suggested move and saves the
+	 * suggested move to this node object
+	 * @param depth The current depth within the algorithm
+	 * @return A double representing the value of a move
+	 */
 	double limited_depth_minimax(int depth)
 	{
 		int win = this.winner();
@@ -660,6 +714,495 @@ class Node
 		}
 		return false;
 	}
+	
+	/**
+	 * Checks if the current board is a cataloged book-move. If so, sets the suggested move
+	 * of this node to the book-move and returns true
+	 * @return True if a book move can be made, false otherwise
+	 */
+	boolean is_book_move()
+	{
+		if (Node.our_player == 0) //Player0's book moves
+		{
+			//sets up the locations for a book move
+			Location loca = new Location(3);
+			Location locb = new Location(6);
+			Location locc = new Location(100);
+			Location locd = new Location(109);
+			
+			//flags to indicate the current board contains all the right locations
+			boolean flaga = false;
+			boolean flagb = false;
+			boolean flagc = false;
+			boolean flagd = false;
+			
+			//moves through the current board and checks that the pieces are in the correct location
+			for (int i = 0; i < 4; i++)
+			{
+				Location loc = this.player0_pieces[i];
+				if (loc.equals(loca)) flaga = true;
+				if (loc.equals(locb)) flagb = true;
+				if (loc.equals(locc)) flagc = true;
+				if (loc.equals(locd)) flagd = true;
+			}
+			
+			if (flaga && flagb && flagc && flagd)
+			{ //all the pieces were in the correct location
+				
+				Location desired_move = new Location(4); //the desired book move
+				boolean flag = false; //for checking that the other player isn't blocking us
+				
+				//checks if any of the other players pieces are in the way
+				for (int i = 0; i < 4; i++)
+				{
+					Location loc = this.player1_pieces[i]; 
+					if (loc.equals(desired_move)) flag = true;
+				}
+				if (!flag) { //the other players pieces weren't in the way
+					this.suggested_move = new Move(loca, desired_move); //set the book move
+					return true; //return true to indicate book move is to be made
+				}
+			}
+			
+			//adjusts the locations for a book move
+			loca = new Location(4);
+			//resets the flags
+			flaga = false;
+			flagb = false;
+			flagc = false;
+			flagd = false;
+			
+			//moves through the current board and checks that the pieces are in the correct location
+			for (int i = 0; i < 4; i++)
+			{
+				Location loc = this.player0_pieces[i];
+				if (loc.equals(loca)) flaga = true;
+				if (loc.equals(locb)) flagb = true;
+				if (loc.equals(locc)) flagc = true;
+				if (loc.equals(locd)) flagd = true;
+			}
+			
+			if (flaga && flagb && flagc && flagd)
+			{
+				Location desired_move = new Location(24);
+				boolean flag = false;
+				
+				//checks if any of the other players pieces are in the way
+				for (int i = 0; i < 4; i++)
+				{
+					Location loc = this.player1_pieces[i];
+					if (loc.equals(desired_move)) flag = true;
+				}
+				if (!flag) {
+					this.suggested_move = new Move(locb, desired_move);
+					return true;
+				} else return false; //we are blocked, book move can't be made
+			}
+			
+			locb = new Location(24);//adjusts the locations for a book move
+			flaga = false;
+			flagb = false;
+			flagc = false;
+			flagd = false;
+			
+			//moves through the current board and checks that the pieces are in the correct location
+			for (int i = 0; i < 4; i++)
+			{
+				Location loc = this.player0_pieces[i];
+				if (loc.equals(loca)) flaga = true;
+				if (loc.equals(locb)) flagb = true;
+				if (loc.equals(locc)) flagc = true;
+				if (loc.equals(locd)) flagd = true;
+			}
+			
+			if (flaga && flagb && flagc && flagd)
+			{
+				Location desired_move = new Location(82);
+				boolean flag = false;
+				
+				//checks if any of the other players pieces are in the way
+				for (int i = 0; i < 4; i++)
+				{
+					Location loc = this.player1_pieces[i];
+					if (loc.equals(desired_move)) flag = true;
+				}
+				if (!flag) {
+					this.suggested_move = new Move(locc, desired_move);
+					return true;
+				}else return false; //we are blocked, book move can't be made
+			}
+			
+			locc = new Location(82);//adjusts the locations for a book move
+			flaga = false;
+			flagb = false;
+			flagc = false;
+			flagd = false;
+			
+			//moves through the current board and checks that the pieces are in the correct location
+			for (int i = 0; i < 4; i++)
+			{
+				Location loc = this.player0_pieces[i];
+				if (loc.equals(loca)) flaga = true;
+				if (loc.equals(locb)) flagb = true;
+				if (loc.equals(locc)) flagc = true;
+				if (loc.equals(locd)) flagd = true;
+			}
+			
+			if (flaga && flagb && flagc && flagd)
+			{
+				Location desired_move = new Location(64);
+				boolean flag = false;
+				
+				//checks if any of the other players pieces are in the way
+				for (int i = 0; i < 4; i++)
+				{
+					Location loc = this.player1_pieces[i];
+					if (loc.equals(desired_move)) flag = true;
+				}
+				if (!flag) {
+					this.suggested_move = new Move(locc, desired_move);
+					return true;
+				}else return false; //we are blocked, book move can't be made
+			}
+			
+			locc = new Location(64);//adjusts the locations for a book move
+			flaga = false;
+			flagb = false;
+			flagc = false;
+			flagd = false;
+			
+			//moves through the current board and checks that the pieces are in the correct location
+			for (int i = 0; i < 4; i++)
+			{
+				Location loc = this.player0_pieces[i];
+				if (loc.equals(loca)) flaga = true;
+				if (loc.equals(locb)) flagb = true;
+				if (loc.equals(locc)) flagc = true;
+				if (loc.equals(locd)) flagd = true;
+			}
+			
+			if (flaga && flagb && flagc && flagd)
+			{
+				Location desired_move = new Location(107);
+				boolean flag = false;
+				
+				//checks if any of the other players pieces are in the way
+				for (int i = 0; i < 4; i++)
+				{
+					Location loc = this.player1_pieces[i];
+					if (loc.equals(desired_move)) flag = true;
+				}
+				if (!flag) {
+					this.suggested_move = new Move(locd, desired_move);
+					return true;
+				}else return false; //we are blocked, book move can't be made
+			}
+			
+			locd = new Location(107);//adjusts the locations for a book move
+			flaga = false;
+			flagb = false;
+			flagc = false;
+			flagd = false;
+			
+			//moves through the current board and checks that the pieces are in the correct location
+			for (int i = 0; i < 4; i++)
+			{
+				Location loc = this.player0_pieces[i];
+				if (loc.equals(loca)) flaga = true;
+				if (loc.equals(locb)) flagb = true;
+				if (loc.equals(locc)) flagc = true;
+				if (loc.equals(locd)) flagd = true;
+			}
+			
+			if (flaga && flagb && flagc && flagd)
+			{
+				Location desired_move = new Location(105);
+				boolean flag = false;
+				
+				//checks if any of the other players pieces are in the way
+				for (int i = 0; i < 4; i++)
+				{
+					Location loc = this.player1_pieces[i];
+					if (loc.equals(desired_move)) flag = true;
+				}
+				if (!flag) {
+					this.suggested_move = new Move(locd, desired_move);
+					return true;
+				}else return false; //we are blocked, book move can't be made
+			}
+			
+			locd = new Location(105);//adjusts the locations for a book move
+			flaga = false;
+			flagb = false;
+			flagc = false;
+			flagd = false;
+			
+			//moves through the current board and checks that the pieces are in the correct location
+			for (int i = 0; i < 4; i++)
+			{
+				Location loc = this.player0_pieces[i];
+				if (loc.equals(loca)) flaga = true;
+				if (loc.equals(locb)) flagb = true;
+				if (loc.equals(locc)) flagc = true;
+				if (loc.equals(locd)) flagd = true;
+			}
+			
+			if (flaga && flagb && flagc && flagd)
+			{
+				Location desired_move = new Location(104);
+				boolean flag = false;
+				
+				//checks if any of the other players pieces are in the way
+				for (int i = 0; i < 4; i++)
+				{
+					Location loc = this.player1_pieces[i];
+					if (loc.equals(desired_move)) flag = true;
+				}
+				if (!flag) {
+					this.suggested_move = new Move(locd, desired_move);
+					return true;
+				}else return false; //we are blocked, book move can't be made
+			}
+			
+		} else { //player 1's book moves
+			
+			Location loca = new Location(106);
+			Location locb = new Location(103);
+			Location locc = new Location(9);
+			Location locd = new Location(0);
+			boolean flaga = false;
+			boolean flagb = false;
+			boolean flagc = false;
+			boolean flagd = false;
+			
+			//moves through the current board and checks that the pieces are in the correct location
+			for (int i = 0; i < 4; i++)
+			{
+				Location loc = this.player1_pieces[i];
+				if (loc.equals(loca)) flaga = true;
+				if (loc.equals(locb)) flagb = true;
+				if (loc.equals(locc)) flagc = true;
+				if (loc.equals(locd)) flagd = true;
+			}
+			
+			if (flaga && flagb && flagc && flagd)
+			{
+				Location desired_move = new Location(105);
+				boolean flag = false;
+				
+				//checks if any of the other players pieces are in the way
+				for (int i = 0; i < 4; i++)
+				{
+					Location loc = this.player0_pieces[i];
+					if (loc.equals(desired_move)) flag = true;
+				}
+				if (!flag) {
+					this.suggested_move = new Move(loca, desired_move);
+					return true;
+				}else return false; //we are blocked, book move can't be made
+			}
+			
+			loca = new Location(105);//adjusts the locations for a book move
+			flaga = false;
+			flagb = false;
+			flagc = false;
+			flagd = false;
+			
+			//moves through the current board and checks that the pieces are in the correct location
+			for (int i = 0; i < 4; i++)
+			{
+				Location loc = this.player1_pieces[i];
+				if (loc.equals(loca)) flaga = true;
+				if (loc.equals(locb)) flagb = true;
+				if (loc.equals(locc)) flagc = true;
+				if (loc.equals(locd)) flagd = true;
+			}
+			
+			if (flaga && flagb && flagc && flagd)
+			{
+				Location desired_move = new Location(85);
+				boolean flag = false;
+				
+				//checks if any of the other players pieces are in the way
+				for (int i = 0; i < 4; i++)
+				{
+					Location loc = this.player0_pieces[i];
+					if (loc.equals(desired_move)) flag = true;
+				}
+				if (!flag) {
+					this.suggested_move = new Move(locb, desired_move);
+					return true;
+				}else return false; //we are blocked, book move can't be made
+			}
+			
+			locb = new Location(85);//adjusts the locations for a book move
+			flaga = false;
+			flagb = false;
+			flagc = false;
+			flagd = false;
+			
+			//moves through the current board and checks that the pieces are in the correct location
+			for (int i = 0; i < 4; i++)
+			{
+				Location loc = this.player1_pieces[i];
+				if (loc.equals(loca)) flaga = true;
+				if (loc.equals(locb)) flagb = true;
+				if (loc.equals(locc)) flagc = true;
+				if (loc.equals(locd)) flagd = true;
+			}
+			
+			if (flaga && flagb && flagc && flagd)
+			{
+				Location desired_move = new Location(27);
+				boolean flag = false;
+				
+				//checks if any of the other players pieces are in the way
+				for (int i = 0; i < 4; i++)
+				{
+					Location loc = this.player0_pieces[i];
+					if (loc.equals(desired_move)) flag = true;
+				}
+				if (!flag) {
+					this.suggested_move = new Move(locc, desired_move);
+					return true;
+				}else return false; //we are blocked, book move can't be made
+			}
+			
+			locc = new Location(27);//adjusts the locations for a book move
+			flaga = false;
+			flagb = false;
+			flagc = false;
+			flagd = false;
+			
+			//moves through the current board and checks that the pieces are in the correct location
+			for (int i = 0; i < 4; i++)
+			{
+				Location loc = this.player1_pieces[i];
+				if (loc.equals(loca)) flaga = true;
+				if (loc.equals(locb)) flagb = true;
+				if (loc.equals(locc)) flagc = true;
+				if (loc.equals(locd)) flagd = true;
+			}
+			
+			if (flaga && flagb && flagc && flagd)
+			{
+				Location desired_move = new Location(45);
+				boolean flag = false;
+				
+				//checks if any of the other players pieces are in the way
+				for (int i = 0; i < 4; i++)
+				{
+					Location loc = this.player0_pieces[i];
+					if (loc.equals(desired_move)) flag = true;
+				}
+				if (!flag) {
+					this.suggested_move = new Move(locc, desired_move);
+					return true;
+				}else return false; //we are blocked, book move can't be made
+			}
+			
+			locc = new Location(45);//adjusts the locations for a book move
+			flaga = false;
+			flagb = false;
+			flagc = false;
+			flagd = false;
+			
+			//moves through the current board and checks that the pieces are in the correct location
+			for (int i = 0; i < 4; i++)
+			{
+				Location loc = this.player1_pieces[i];
+				if (loc.equals(loca)) flaga = true;
+				if (loc.equals(locb)) flagb = true;
+				if (loc.equals(locc)) flagc = true;
+				if (loc.equals(locd)) flagd = true;
+			}
+			
+			if (flaga && flagb && flagc && flagd)
+			{
+				Location desired_move = new Location(2);
+				boolean flag = false;
+				
+				//checks if any of the other players pieces are in the way
+				for (int i = 0; i < 4; i++)
+				{
+					Location loc = this.player0_pieces[i];
+					if (loc.equals(desired_move)) flag = true;
+				}
+				if (!flag) {
+					this.suggested_move = new Move(locd, desired_move);
+					return true;
+				}else return false; //we are blocked, book move can't be made
+			}
+			
+			locd = new Location(2);//adjusts the locations for a book move
+			flaga = false;
+			flagb = false;
+			flagc = false;
+			flagd = false;
+			
+			//moves through the current board and checks that the pieces are in the correct location
+			for (int i = 0; i < 4; i++)
+			{
+				Location loc = this.player1_pieces[i];
+				if (loc.equals(loca)) flaga = true;
+				if (loc.equals(locb)) flagb = true;
+				if (loc.equals(locc)) flagc = true;
+				if (loc.equals(locd)) flagd = true;
+			}
+			
+			if (flaga && flagb && flagc && flagd)
+			{
+				Location desired_move = new Location(4);
+				boolean flag = false;
+				
+				//checks if any of the other players pieces are in the way
+				for (int i = 0; i < 4; i++)
+				{
+					Location loc = this.player0_pieces[i];
+					if (loc.equals(desired_move)) flag = true;
+				}
+				if (!flag) {
+					this.suggested_move = new Move(locd, desired_move);
+					return true;
+				}else return false; //we are blocked, book move can't be made
+			}
+			
+			locd = new Location(4);//adjusts the locations for a book move
+			flaga = false;
+			flagb = false;
+			flagc = false;
+			flagd = false;
+			
+			//moves through the current board and checks that the pieces are in the correct location
+			for (int i = 0; i < 4; i++)
+			{
+				Location loc = this.player1_pieces[i];
+				if (loc.equals(loca)) flaga = true;
+				if (loc.equals(locb)) flagb = true;
+				if (loc.equals(locc)) flagc = true;
+				if (loc.equals(locd)) flagd = true;
+			}
+			
+			if (flaga && flagb && flagc && flagd)
+			{
+				Location desired_move = new Location(5);
+				boolean flag = false;
+				
+				//checks if any of the other players pieces are in the way
+				for (int i = 0; i < 4; i++)
+				{
+					Location loc = this.player0_pieces[i];
+					if (loc.equals(desired_move)) flag = true;
+				}
+				if (!flag) {
+					this.suggested_move = new Move(locd, desired_move);
+					return true;
+				}else return false; //we are blocked, book move can't be made
+			}
+		}
+		return false; //no book move can be made
+	}
+	
 }
 
 
@@ -686,13 +1229,25 @@ public class FourInARow {
 		Node starting_node = new Node(turn, player0_moves, player1_moves);
 		Node.set_our_player(turn); //ASSUMPTION: our player is whoever turn it is
 		
+		/*
+		 * Performs iterative deepening with constraint on the depth being less than 5 due to limited memory (depth 5 or higher runs
+		 * out of memory)
+		 */
 		int depth = 1;
-		while (true)
+		while (depth < 5)
 		{
-			starting_node.alpha_beta(depth, -999999999, 999999999);
-			starting_node.limited_depth_minimax(depth);
-			System.out.println(starting_node.suggested_move);
-			depth++;
+			if (starting_node.is_book_move()) //checks if the current board is a book move
+			{
+				System.out.println(starting_node.suggested_move); //plays the book move
+				depth = 5; //breaks out of the loop since no other move will be printed
+				
+			} else { //performs alpha_beta to produce a pruned tree to use in LD-minimax which produces a move
+				starting_node.alpha_beta(depth, -999999999, 999999999); //perform alpha-beta
+				starting_node.limited_depth_minimax(depth); //perform LD-minimax to get a move
+				System.out.println(starting_node.suggested_move); //play the move
+				depth++; //increase the depth for iterative deepening
+			}
 		}
+		
 	}
 }
