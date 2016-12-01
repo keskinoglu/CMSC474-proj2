@@ -228,24 +228,32 @@ class Node
 				temp = i.eval(Node.our_player, Node.other_player);
 				i.value = temp;	
 			}
-			Collections.sort(children, new Comparator<Node>() {
-	            @Override
-	            public int compare(Node o1, Node o2) {
-	            	return (int)(o1.value - o2.value);
-	            }
-	        });		
+			try {
+				Collections.sort(children, new Comparator<Node>() {
+		            @Override
+		            public int compare(Node o1, Node o2) {
+		            	return (int)(o1.value - o2.value);
+		            }
+		        });		
+			} catch (IllegalArgumentException a) {
+				return children;
+			}
 		}else{ //min
 			double temp;
 			for(Node i: children){
 				temp = i.eval(Node.our_player, Node.other_player);
 				i.value = temp;	
 			}
-			Collections.sort(children, new Comparator<Node>() {
-	            @Override
-	            public int compare(Node o1, Node o2) {
-	            	return (int)(o1.value - o2.value);
-	            }
-	        });	
+			try {
+				Collections.sort(children, new Comparator<Node>() {
+		            @Override
+		            public int compare(Node o1, Node o2) {
+		            	return (int)(o1.value - o2.value);
+		            }
+		        });	
+			} catch (IllegalArgumentException a) {
+				return children;
+			}
 		}
 		return children;
 	}
@@ -615,12 +623,23 @@ class Node
 		return locations; 
 	}
 	
+	/**
+	 * returns the absolute value of a
+	 * @param a
+	 * @return
+	 */
+	double abs(double a)
+	{
+		if (a < 0) return -1*a;
+		return a;
+	}
+	
 	/*
 	 * enter int of 0 or 1 for which player we are and opponent
 	 */
 	double eval(int us, int opponent) {
 		// return eval_player(player_0) - eval_player(player_1);
-		return eval_player(us);// - eval_player(opponent);
+		return abs(eval_player(us)) - .5*abs(eval_player(opponent));
 	}
 	
 	/*
@@ -1243,7 +1262,12 @@ class Node
 	
 }
 
-
+/**
+ * This class is the 'work-horse' of the program: it is responsible for reading the input, generating the Node object
+ * which represents the given gameboard, and producing a valid move using book moves / alpha-beta pruning (which has move ordering) / and 
+ * limited depth minimax (which is what generates the move). 
+ *
+ */
 public class FourInARow {
 	public static void main(String[] args) 
 	{
